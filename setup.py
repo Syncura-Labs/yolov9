@@ -103,7 +103,40 @@ PACKAGE_DATA = {
 
 # Include additional files
 INCLUDE_PACKAGE_DATA = True
-PACKAGE_DIR = {'yolov9': '.'}
+
+# Package structure definition for dual namespace support
+_PACKAGE_STRUCTURE = [
+    ('', '.'),  # Root package
+    ('models', 'models'),
+    ('utils', 'utils'), 
+    ('utils.loggers', 'utils/loggers'),
+    ('utils.loggers.clearml', 'utils/loggers/clearml'),
+    ('utils.loggers.comet', 'utils/loggers/comet'), 
+    ('utils.loggers.wandb', 'utils/loggers/wandb'),
+    ('utils.segment', 'utils/segment'),
+    ('utils.segment.tal', 'utils/segment/tal'),
+    ('utils.panoptic', 'utils/panoptic'),
+    ('utils.panoptic.tal', 'utils/panoptic/tal'), 
+    ('utils.tal', 'utils/tal'),
+    ('classify', 'classify'),
+    ('segment', 'segment'),
+    ('panoptic', 'panoptic'),
+]
+
+# Generate packages and package_dir for dual namespace support
+PACKAGES = []
+PACKAGE_DIR = {}
+
+for pkg_name, pkg_path in _PACKAGE_STRUCTURE:
+    if pkg_name == '':
+        # Root package maps differently for each namespace
+        PACKAGES.extend(['yolov9'])
+        PACKAGE_DIR['yolov9'] = pkg_path
+    else:
+        # Add both original and yolov9 namespaced versions
+        PACKAGES.extend([pkg_name, f'yolov9.{pkg_name}'])
+        PACKAGE_DIR[pkg_name] = pkg_path
+        PACKAGE_DIR[f'yolov9.{pkg_name}'] = pkg_path
 
 setup(
     name=NAME,
@@ -116,41 +149,11 @@ setup(
     url=URL,
     license=LICENSE,
     
-    # Package configuration - map current directories to yolov9 namespace
-    packages=[
-        'yolov9',
-        'yolov9.models',
-        'yolov9.utils', 
-        'yolov9.utils.loggers',
-        'yolov9.utils.loggers.clearml',
-        'yolov9.utils.loggers.comet', 
-        'yolov9.utils.loggers.wandb',
-        'yolov9.utils.segment',
-        'yolov9.utils.segment.tal',
-        'yolov9.utils.panoptic',
-        'yolov9.utils.panoptic.tal', 
-        'yolov9.utils.tal',
-        'yolov9.classify',
-        'yolov9.segment',
-        'yolov9.panoptic',
-    ],
-    package_dir={
-        'yolov9': '.',
-        'yolov9.models': 'models',
-        'yolov9.utils': 'utils',
-        'yolov9.utils.loggers': 'utils/loggers',
-        'yolov9.utils.loggers.clearml': 'utils/loggers/clearml',
-        'yolov9.utils.loggers.comet': 'utils/loggers/comet',
-        'yolov9.utils.loggers.wandb': 'utils/loggers/wandb',
-        'yolov9.utils.segment': 'utils/segment',
-        'yolov9.utils.segment.tal': 'utils/segment/tal',
-        'yolov9.utils.panoptic': 'utils/panoptic',
-        'yolov9.utils.panoptic.tal': 'utils/panoptic/tal',
-        'yolov9.utils.tal': 'utils/tal',
-        'yolov9.classify': 'classify',
-        'yolov9.segment': 'segment',
-        'yolov9.panoptic': 'panoptic',
-    },
+    # Package configuration - dual namespace support
+    # Supports both internal imports (from models.common import ...) 
+    # and external imports (from yolov9.models.common import ...)
+    packages=PACKAGES,
+    package_dir=PACKAGE_DIR,
     package_data=PACKAGE_DATA,
     include_package_data=INCLUDE_PACKAGE_DATA,
     
